@@ -1,0 +1,30 @@
+{
+  "name": "openai-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+ "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "openai",
+    "express",
+    "code-generator",
+    "aem",
+    "sitecore",
+    "react"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+ "dependencies": {
+  "cors": "^2.8.5",
+  "express": "^4.19.2",
+  "openai": "^4.38.1",
+  "body-parser": "^1.20.2",
+  "dotenv": "^16.3.1"
+},
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
