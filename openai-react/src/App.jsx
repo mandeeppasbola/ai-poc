@@ -49,6 +49,7 @@ const App = () => {
     const [dropdown1Value, setDropdown1Value] = useState('');
     const [dropdown2Value, setDropdown2Value] = useState('');
     const [projectName, setProjectName] = useState('');
+    const [designReference, setDesignReference] = useState('');
     const [downloadUrl, setDownloadUrl] = useState(null);
     const [zipFileName, setZipFileName] = useState(null);
     const [generatedResult, setGeneratedResult] = useState(null);
@@ -56,7 +57,7 @@ const App = () => {
 
     // Dropdown 1 options - UI component library
     const dropdown1Options = [
-        { value: '', label: 'Select Component library' },
+        { value: '', label: 'Vanilla CSS/JS'},
         { value: 'Flowbite', label: 'Flowbite library'},
         { value: 'Material UI', label: 'Material UI library'},
         { value: 'Chakra UI', label: 'Chakra UI library'},
@@ -64,7 +65,7 @@ const App = () => {
 
     // Dropdown 2 options - CMS
     const dropdown2Options = [
-        { value: '', label: 'Select CMS' },
+        { value: '', label: 'No CMS'},
         { value: 'AEM', label: 'AEM'},
         { value: 'Drupal', label: 'Drupal' },
         { value: 'SiteCore', label: 'SiteCore' },
@@ -107,6 +108,7 @@ const App = () => {
         setDownloadUrl(null);
         setZipFileName(null);
         setGeneratedResult(null);
+        setDesignReference('');
 
         // 2. Validate only when sending (not real-time)
         const trimmedPrompt = currentPrompt.trim();
@@ -126,27 +128,18 @@ const App = () => {
             return;
         }
 
-        if (!dropdown1Value && !customPrompt) {
-            setError('Please select a technology category');
-            return;
-        }
-
-        if (!dropdown2Value && !customPrompt) {
-            setError('Please select your CMS');
-            return;
-        }
 
         // Validation passed, proceed with API call preparation
         setIsLoading(true);
         
         const selectedTech = dropdown1Options.find(opt => opt.value === dropdown1Value);
         const selectedCMS = dropdown2Options.find(opt => opt.value === dropdown2Value);
-        
         const payload = {
             query: `${trimmedPrompt} [Component Library: ${selectedTech?.label || 'None'}] [CMS Platform: ${selectedCMS?.label || 'Generic'}]`,
             componentLibrary: dropdown1Value || null,
             projectName: projectName || "ai-assistant-project",
-            cms: dropdown2Value || null
+            cms: dropdown2Value || null,
+            designReference: designReference || null
         };
 
         try {
@@ -161,12 +154,13 @@ const App = () => {
             const result = await response.json().catch(() => {
                 throw new Error("Received non-JSON or empty response from the server.");
             });
-
             if (result.success === true) {
                 // Clear the form immediately after success but before setting response data
                 setPrompt('');
                 setDropdown1Value('');
                 setDropdown2Value('');
+                setDesignReference('');
+                // DON'T clear projectName yet - we need it for fallback
                 // DON'T clear projectName yet - we need it for fallback
                 
                 // Handle successful response structure
@@ -325,7 +319,7 @@ const App = () => {
                             <div className="space-y-3">
                                 <label className="block text-base font-semibold text-gray-800 flex items-center">
                                     <Zap className="w-4 h-4 mr-2 text-indigo-600" />
-                                    Technology Focus
+                                    Component Library
                                 </label>
                                 <select
                                     value={dropdown1Value}
@@ -370,6 +364,24 @@ const App = () => {
                                     </p>
                                 )}
                             </div>
+                        {/* Design Reference Input */}
+                        <div className="space-y-3">
+                            <label className="block text-base font-semibold text-gray-800 flex items-center">
+                                <Sparkles className="w-4 h-4 mr-2 text-indigo-600" />
+                                Design Reference
+                                <span className="text-sm font-normal text-gray-500 ml-2">(Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                value={designReference}
+                                onChange={(e) => setDesignReference(e.target.value)}
+                                placeholder="e.g., https://figma.com/file/..."
+                                className="w-full p-4 border-2 border-gray-200 rounded-2xl text-base transition-all duration-200 focus:outline-none focus:border-indigo-500 focus:bg-indigo-50/30"
+                                disabled={isLoading}
+                            />
+                            <p className="text-sm text-gray-600 italic">
+                                Provide a design reference link for your project
+                            </p>
                         </div>
 
                         {/* Project Name Input */}
@@ -393,7 +405,7 @@ const App = () => {
                         </div>
 
                         {/* Enhanced Send Button */}
-                        <div className="pt-4">
+                        <div className="pt-4 pb-4 align-center">
                             <button
                                 onClick={handleGenerate}
                                 disabled={isLoading}
@@ -456,17 +468,19 @@ const App = () => {
                             {downloadUrl && zipFileName && (
                                 <div className="mt-6 bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border border-green-200">
                                     <div className="text-center">
-                        <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
-                            Project Ready for Download
-                        </h4>
-                        
-                        <p className="text-gray-600 mb-4">
-                            <span className="font-medium">Project Name:</span> 
-                            <span className="ml-2 font-mono text-sm bg-gray-100 px-2 py-1 rounded">
-                                {generatedResult?.actualProjectName || "Generated Project"}
-                            </span>
-                        </p>                                        <button
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-2 flex items-center justify-center">
+                                            <CheckCircle className="w-5 h-5 mr-2 text-green-600" />
+                                            Project Ready for Download
+                                        </h4>
+                                        
+                                        <p className="text-gray-600 mb-4">
+                                            <span className="font-medium">Project Name:</span> 
+                                            <span className="ml-2 font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+                                                {generatedResult?.actualProjectName || "Generated Project"}
+                                            </span>
+                                        </p>
+                                        
+                                        <button
                                             onClick={handleDownload}
                                             className="flex items-center justify-center mx-auto px-8 py-3 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-semibold rounded-xl shadow-lg transition-all duration-200 transform hover:scale-105 hover:shadow-xl"
                                         >
@@ -516,6 +530,7 @@ const App = () => {
                         </div>
                     )} */}
                 </div>
+            </div>
             </div>
         </div>
     );
